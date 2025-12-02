@@ -16,8 +16,7 @@ import type {
   UserWithCookie,
 } from "../types/index.ts";
 import { qq } from "./qq.ts";
-
-const app = new Hono();
+import { app } from "../../main.ts";
 
 // 中间件：验证请求体
 app.use("*", async (c, next) => {

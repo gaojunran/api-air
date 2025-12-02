@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-export const qq = new Hono();
+const qq = new Hono();
 
 const backendUrl = "http://codenebula.top:8082";
 const group1Id = "770966394";
@@ -50,3 +50,5 @@ qq.post("/group1/send", async (c) => {
   const json = await resp.json();
   return c.json(json);
 });
+
+export default qq;

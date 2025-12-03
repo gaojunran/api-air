@@ -3,7 +3,7 @@ interface User {
   nickname: string;
 }
 
-interface IncomingMessage {
+export interface IncomingMessage {
   self_id: number;
   message_type: string;
   group_id: number;

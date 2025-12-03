@@ -1,5 +1,5 @@
 import OpenAI from "npm:openai";
-import { assert, requireEnv, throwIfNil } from "../utils/index.ts";
+import { assert, nowBeijing, requireEnv, throwIfNil } from "../utils/index.ts";
 
 const CONFIG = {
   fixedPrompt: `你是一个 QQ 群机器人。你的职责是以简短的语言回复提问。
@@ -30,6 +30,8 @@ function modifySystemPrompt(newPrompt: string) {
 
 export async function simpleAnswer(
   question: string,
+  withFixedPrompt?: string,
+  withSystemPrompt?: string,
   useModel: keyof typeof CONFIG.models = "default",
 ): Promise<string> {
   const client = new OpenAI({
@@ -42,7 +44,9 @@ export async function simpleAnswer(
     messages: [
       {
         role: "system",
-        content: CONFIG.fixedPrompt + "\n" + CONFIG.systemPrompt,
+        content: (withFixedPrompt ?? CONFIG.fixedPrompt) + "\n" +
+          (withSystemPrompt ?? CONFIG.systemPrompt) + "\n" +
+          `现在的时间是 ${nowBeijing()}`,
       },
       { role: "user", content: question },
     ],

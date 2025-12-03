@@ -1,27 +1,28 @@
 import { Hono } from "hono";
-import {
-  sendGroup1BatchMessages,
-  sendGroup1Message,
-} from "../service/qqGroupMessage.ts";
+import { sendGroupMessage } from "../service/qqGroupMessage.ts";
 
 const qq = new Hono();
 
-// 接受两种格式：
-// 1. { ats: string[], text: string }
-// 2. { [qq: string]: string } - QQ号:消息内容的键值对
+const group1Id = "770966394";
+
+// 发送群1消息（固定群 ID）
+// 请求格式：{ ats: string[], text: string }
 qq.post("/group1/send", async (c) => {
   const data = c.get("jsonBody") as any;
+  const json = await sendGroupMessage({
+    groupId: group1Id,
+    ats: data.ats,
+    text: data.text,
+  });
+  return c.json(json);
+});
 
-  // 判断是哪种格式
-  if (data.ats !== undefined && data.text !== undefined) {
-    // 第一种格式：{ ats: string[], text: string }
-    const json = await sendGroup1Message(data);
-    return c.json(json);
-  } else {
-    // 第二种格式：{ [qq: string]: string } 批量发送
-    const json = await sendGroup1BatchMessages(data);
-    return c.json(json);
-  }
+// 发送任意群消息（需要指定群 ID）
+// 请求格式：{ groupId: string, ats: string[], text: string }
+qq.post("/group/send", async (c) => {
+  const data = c.get("jsonBody") as any;
+  const json = await sendGroupMessage(data);
+  return c.json(json);
 });
 
 export default qq;

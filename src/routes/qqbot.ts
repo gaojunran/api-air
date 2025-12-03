@@ -10,8 +10,18 @@ qqbot.post("/", async (c) => {
   console.log(JSON.stringify(body, null, 2));
   const result = parseAtTextMessage(body as IncomingMessage);
   if (!result) return c.json({ message: "skipped" });
-
-  const answer = await simpleAnswer(result.message);
+  let answer: string;
+  if (result.replyContent) {
+    answer = await simpleAnswer(
+      result.message + `\n「引用内容」为：\n` + result.replyContent,
+      undefined,
+      result.replyContent
+        ? "你需要基于给出的「引用内容」进行回答。"
+        : undefined,
+    );
+  } else {
+    answer = await simpleAnswer(result.message);
+  }
 
   const res = await sendGroupMessage({
     groupId: result.group,

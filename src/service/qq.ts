@@ -15,9 +15,21 @@ export interface IncomingMessage {
   message: Array<
     | { type: "at"; data: { qq: string } }
     | { type: "text"; data: { text: string } }
+    | { type: "reply"; data: { id: string } }
     | any
   >;
   raw_message: string;
+  raw?: {
+    elements?: Array<{
+      elementType: number;
+      replyElement?: {
+        sourceMsgTextElems?: Array<{
+          replyAbsElemType: number;
+          textElemContent?: string;
+        }>;
+      };
+    }>;
+  };
 }
 
 interface ParsedResult {
@@ -25,10 +37,12 @@ interface ParsedResult {
   sender: User;
   message: string;
   time: Date;
+  replyContent?: string;
 }
 
 /**
  * 解析群消息：是否 @了自己 并且 是纯文本消息
+ * 支持回复消息的解析
  */
 export function parseAtTextMessage(
   data: IncomingMessage,
@@ -53,6 +67,31 @@ export function parseAtTextMessage(
 
   if (!textParts) return undefined;
 
+  // 提取回复的消息内容
+  let replyContent: string | undefined;
+
+  // 检查是否有 reply 类型的消息
+  const hasReply = data.message.some((m) => m.type === "reply");
+
+  if (hasReply && data.raw?.elements) {
+    // 从 raw.elements 中查找 replyElement
+    for (const element of data.raw.elements) {
+      if (element.elementType === 7 && element.replyElement) {
+        const sourceMsgTextElems = element.replyElement.sourceMsgTextElems;
+        if (sourceMsgTextElems && sourceMsgTextElems.length > 0) {
+          // 拼接所有文本内容
+          replyContent = sourceMsgTextElems
+            .filter((elem) =>
+              elem.replyAbsElemType === 1 && elem.textElemContent
+            )
+            .map((elem) => elem.textElemContent)
+            .join("");
+          break;
+        }
+      }
+    }
+  }
+
   return {
     group: String(data.group_id),
     sender: {
@@ -61,5 +100,6 @@ export function parseAtTextMessage(
     },
     message: textParts,
     time: new Date(data.time * 1000),
+    replyContent,
   };
 }

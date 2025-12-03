@@ -28,7 +28,7 @@ function modifySystemPrompt(newPrompt: string) {
   CONFIG.systemPrompt = newPrompt;
 }
 
-async function simpleAnswer(
+export async function simpleAnswer(
   question: string,
   useModel: keyof typeof CONFIG.models = "default",
 ): Promise<string> {
@@ -37,15 +37,18 @@ async function simpleAnswer(
     baseURL: "https://api.siliconflow.cn/v1",
   });
 
-  const response = await client.responses.create({
-    model: useModel,
-    input: [
-      { role: "system", content: CONFIG.fixedPrompt + CONFIG.systemPrompt },
+  const response = await client.chat.completions.create({
+    model: CONFIG.models[useModel],
+    messages: [
+      {
+        role: "system",
+        content: CONFIG.fixedPrompt + "\n" + CONFIG.systemPrompt,
+      },
       { role: "user", content: question },
     ],
   });
 
-  console.log(response.output_text);
+  console.log(response.choices[0].message.content);
 
-  return response.output_text;
+  return response.choices[0].message.content ?? "大模型无回复";
 }

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import qq from "./src/routes/qq.ts";
+import qqbot from "./src/routes/qqbot.ts";
 
 export const app = new Hono();
 
@@ -21,6 +22,7 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/qq", qq);
+app.route("/qqbot", qqbot);
 
 // 404处理
 app.notFound((c) => {

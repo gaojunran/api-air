@@ -61,8 +61,12 @@ export const INSTRUCTIONS: Record<string, Instruction> = {
     key: "absent",
     aliases: ["/absent", "/请假"],
     action: async (parsed) => {
-      const todayStr = formatDateUTC8(new Date());
-      const fixedPrompt = `今天的日期是${todayStr}。你的任务是将以下自然语言描述的请假信息生成 JSON 表示。注意，你的生成内容必须以 JSON 的大括号开始和结尾，不能包含无用的记号（如 \`\`\` 等）
+      const now = new Date();
+      const todayStr = formatDateUTC8(now);
+      const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+      const utc8Day = new Date(now.getTime() + 8 * 60 * 60 * 1000).getUTCDay();
+      const weekdayStr = weekdays[utc8Day];
+      const fixedPrompt = `今天的日期是${todayStr}，星期${weekdayStr}。你的任务是将以下自然语言描述的请假信息生成 JSON 表示。注意，你的生成内容必须以 JSON 的大括号开始和结尾，不能包含无用的记号（如 \`\`\` 等）
 
 JSON 的模式为：
 

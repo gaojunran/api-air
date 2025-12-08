@@ -3,6 +3,69 @@ interface User {
   nickname: string;
 }
 
+// Instruction response type
+export interface InstructionResponse {
+  ats: string[];
+  text: string;
+}
+
+// Instruction type definition
+export interface Instruction {
+  key: string;
+  aliases: string[];
+  action: (instruction: Instruction) => InstructionResponse;
+}
+
+// Instruction table
+export const INSTRUCTIONS: Record<string, Instruction> = {
+  prompt: {
+    key: "prompt",
+    aliases: ["/prompt", "/提示词"],
+    action: (_instruction) => {
+      // TODO: implement prompt action
+      return { ats: [], text: "开发中..." };
+    },
+  },
+  remind: {
+    key: "remind",
+    aliases: ["/remind", "/提醒"],
+    action: (_instruction) => {
+      // TODO: implement remind action
+      return { ats: [], text: "开发中..." };
+    },
+  },
+  absent: {
+    key: "absent",
+    aliases: ["/absent", "/请假"],
+    action: (_instruction) => {
+      // TODO: implement absent action
+      return { ats: [], text: "开发中..." };
+    },
+  },
+};
+
+// Build alias to instruction map for quick lookup
+const aliasToInstruction: Map<string, Instruction> = new Map();
+for (const instruction of Object.values(INSTRUCTIONS)) {
+  for (const alias of instruction.aliases) {
+    aliasToInstruction.set(alias, instruction);
+  }
+}
+
+/**
+ * Parse instruction from text that starts with /
+ */
+export function parseInstruction(text: string): Instruction | undefined {
+  if (!text.startsWith("/")) return undefined;
+  
+  // Extract the command part (first word)
+  const commandMatch = text.match(/^(\/\S+)/);
+  if (!commandMatch) return undefined;
+  
+  const command = commandMatch[1];
+  return aliasToInstruction.get(command);
+}
+
 export interface IncomingMessage {
   self_id: number;
   message_type: string;
@@ -38,6 +101,7 @@ interface ParsedResult {
   message: string;
   time: Date;
   replyContent?: string;
+  instruction?: Instruction;
 }
 
 /**
@@ -66,6 +130,9 @@ export function parseAtTextMessage(
     .trim();
 
   if (!textParts) return undefined;
+
+  // Parse instruction if text starts with /
+  const instruction = parseInstruction(textParts);
 
   // 提取回复的消息内容
   let replyContent: string | undefined;
@@ -101,5 +168,6 @@ export function parseAtTextMessage(
     message: textParts,
     time: new Date(data.time * 1000),
     replyContent,
+    instruction,
   };
 }

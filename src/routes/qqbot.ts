@@ -10,6 +10,19 @@ qqbot.post("/", async (c) => {
   console.log(JSON.stringify(body, null, 2));
   const result = parseAtTextMessage(body as IncomingMessage);
   if (!result) return c.json({ message: "skipped" });
+
+  // Check if it's an instruction
+  if (result.instruction) {
+    const response = result.instruction.action(result.instruction);
+    const res = await sendGroupMessage({
+      groupId: result.group,
+      ats: response.ats.length > 0 ? response.ats : [result.sender.id],
+      text: response.text,
+    });
+    return c.json({ result: res });
+  }
+
+  // Normal LLM response flow
   let answer: string;
   if (result.replyContent) {
     answer = await simpleAnswer(

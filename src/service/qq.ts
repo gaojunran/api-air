@@ -88,7 +88,13 @@ class_seq_number：当天的第几节课。你应该根据用户的语言推算�
         // Parse JSON response
         let jsonData: { date_format: string; class_seq_number: number };
         try {
-          jsonData = JSON.parse(llmResponse);
+          // Remove markdown code block markers if present
+          const cleanedResponse = llmResponse
+            .replace(/^```json\s*/i, "")
+            .replace(/^```\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
+          jsonData = JSON.parse(cleanedResponse);
           // Validate required fields
           if (!jsonData.date_format || !jsonData.class_seq_number) {
             throw new Error("Missing required fields");
@@ -162,23 +168,14 @@ for (const instruction of Object.values(INSTRUCTIONS)) {
  * Parse instruction from text that starts with /
  */
 export function parseInstruction(text: string): Instruction | undefined {
-  console.log(`[parseInstruction] input text: "${text}"`);
-  console.log(`[parseInstruction] text.startsWith("/"): ${text.startsWith("/")}`);
-  
   if (!text.startsWith("/")) return undefined;
-  
+
   // Extract the command part (first word)
   const commandMatch = text.match(/^(\/\S+)/);
-  console.log(`[parseInstruction] commandMatch: ${JSON.stringify(commandMatch)}`);
   if (!commandMatch) return undefined;
-  
+
   const command = commandMatch[1];
-  console.log(`[parseInstruction] command: "${command}"`);
-  console.log(`[parseInstruction] aliasToInstruction has: ${aliasToInstruction.has(command)}`);
-  
-  const instruction = aliasToInstruction.get(command);
-  console.log(`[parseInstruction] found instruction: ${instruction?.key}`);
-  return instruction;
+  return aliasToInstruction.get(command);
 }
 
 export interface IncomingMessage {

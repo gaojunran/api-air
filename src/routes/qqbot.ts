@@ -7,7 +7,7 @@ const qqbot = new Hono();
 
 qqbot.post("/", async (c) => {
   const body = c.get("jsonBody" as never);
-  console.log(JSON.stringify(body, null, 2));
+  // console.log(JSON.stringify(body, null, 2));  // Debug
   const result = parseAtTextMessage(body as IncomingMessage);
   if (!result) return c.json({ message: "skipped" });
 

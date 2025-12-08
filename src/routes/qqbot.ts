@@ -13,7 +13,7 @@ qqbot.post("/", async (c) => {
 
   // Check if it's an instruction
   if (result.instruction) {
-    const response = result.instruction.action(result.instruction);
+    const response = await result.instruction.action(result);
     const res = await sendGroupMessage({
       groupId: result.group,
       ats: response.ats.length > 0 ? response.ats : [result.sender.id],

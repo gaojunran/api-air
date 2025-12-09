@@ -94,9 +94,10 @@ class_seq_number：当天的第几节课。你应该根据用户的语言推算�
         try {
           // Remove markdown code block markers if present
           const cleanedResponse = llmResponse
-            .replace(/^```json\s*/i, "")
-            .replace(/^```\s*/i, "")
-            .replace(/\s*```$/i, "")
+            .trim()
+            .replace(/^```json\s*/im, "")
+            .replace(/^```\s*/im, "")
+            .replace(/\s*```\s*$/im, "")
             .trim();
           jsonData = JSON.parse(cleanedResponse);
           // Validate required fields
@@ -141,14 +142,9 @@ class_seq_number：当天的第几节课。你应该根据用户的语言推算�
 
         const responseJson = await response.json();
 
-        // Convert response to key-value format
-        const kvLines = Object.entries(responseJson)
-          .map(([key, value]) => `${key}：${value}`)
-          .join("\n");
-
         return {
           ats: [parsed.sender.id],
-          text: `明白了！如下课程你不会被自动签到：\n${kvLines}`,
+          text: `${responseJson.message}\n\n详细信息：\n${JSON.stringify(responseJson.data)}`,
         };
       } catch (error) {
         return {
